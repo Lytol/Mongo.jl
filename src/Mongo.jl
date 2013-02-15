@@ -1,5 +1,5 @@
 module Mongo
 
-include("mongo_client.jl")
+include("client.jl")
 
 end
