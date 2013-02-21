@@ -25,9 +25,7 @@ end
 
 find(client::MongoClient, namespace::String) = MongoCursor(client, namespace)
 
-#
-# Iterator
-#
+## Iterator ##
 import Base.start, Base.next, Base.done
 
 start(c::MongoCursor) = ccall((:mongo_cursor_next, MONGO_SHARED_LIBRARY), Int32, (Ptr{Void},), c._cursor)

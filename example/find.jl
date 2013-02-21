@@ -5,7 +5,9 @@ using Mongo
 
 client = MongoClient()
 
-for o in find(client, "test.names")
-  print(o)
+for bson in find(client, "test.mongojl")
+    for obj in bson
+        println(obj)
+    end
+    println("--------------------------------------")
 end
-
