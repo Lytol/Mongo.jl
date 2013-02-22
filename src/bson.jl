@@ -2,7 +2,7 @@ module BSON
 
 export BSONObject,
        BSON_OK, BSON_ERROR,
-       print
+       print, get
 
 const BSON_LIBRARY_PATH = "/usr/local/lib/libmongoc"
 const BSON_OK = 0
@@ -40,12 +40,35 @@ type BSONObject
     end
 end
 
-BSONObject() = begin
-  _bson = ccall((:bson_create, BSON_LIBRARY_PATH), Ptr{Void}, ())
-  BSONObject(_bson)
+BSONObject(dict::Dict{Any,Any}) = begin
+    _bson = ccall((:bson_create, BSON_LIBRARY_PATH), Ptr{Void}, ())
+    if _bson == C_NULL
+        error("Unable to create BSON object")
+    end
+    ccall((:bson_init, BSON_LIBRARY_PATH), Void, (Ptr{Void},), _bson)
+
+    build(_bson, dict)
+
+    if ccall((:bson_finish, BSON_LIBRARY_PATH), Int32, (Ptr{Void},), _bson) == BSON_ERROR
+        error("Unable to build BSON object")
+    end
+
+    BSONObject(_bson)
 end
 
-print(bson::BSONObject) = ccall((:bson_print, BSON_LIBRARY_PATH), Void, (Ptr{Void},), bson._bson)
+
+function print(bson::BSONObject)
+    ccall((:bson_print, BSON_LIBRARY_PATH), Void, (Ptr{Void},), bson._bson)
+end
+
+function get(bson::BSONObject, key::String)
+    for (k,v) in bson
+        if k == key
+            return v
+        end
+    end
+    nothing
+end
 
 ## Iterator ##
 import Base.start, Base.next, Base.done
@@ -126,6 +149,48 @@ function value(_iterator::Ptr{Void})
 end
 
 ## Private methods ##
+
+function build(_bson::Ptr{Void}, dict::Dict{Any,Any})
+    for (k,v) in dict
+      append(_bson, k, v)
+    end
+end
+
+function append(_bson::Ptr{Void}, k::String, v::Any)
+    t = typeof(v)
+
+    if ASCIIString == t || UTF8String == t
+        ccall((:bson_append_string, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}), _bson, bytestring(k), bytestring(v))
+    elseif Int32 == t
+        ccall((:bson_append_int, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v)
+    elseif Int64 == t
+        ccall((:bson_append_long, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}, Int64), _bson, bytestring(k), v)
+    elseif Float64 == t || Float32 == t
+        ccall((:bson_append_double, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}, Float64), _bson, bytestring(k), v)
+    elseif Bool == t
+        ccall((:bson_append_bool, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v == true ? 1 : 0)
+    elseif Dict{Any,Any} == t
+        ccall((:bson_append_start_object, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
+        build(_bson, v)
+        ccall((:bson_append_finish_object, BSON_LIBRARY_PATH), Int32, (Ptr{Void},), _bson)
+    elseif Array{Any,1} == t
+        ccall((:bson_append_start_array, BSON_LIBRARY_PATH), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
+        for i in 1:length(v)
+            append(_bson, string(i-1), v[i])
+        end
+        ccall((:bson_append_finish_array, BSON_LIBRARY_PATH), Int32, (Ptr{Void},), _bson)
+    else
+        # Not supported: 
+        #   BSON_REGEX
+        #   BSON_DATE
+        #   BSON_TIMESTAMP
+        #   BSON_BINDATA
+        #   BSON_CODE
+        #   BSON_CODEWSCOPE
+        #
+        error("Unsupported type: $t")
+    end
+end
 
 function destroy(bson::BSONObject)
     ccall((:bson_destroy, BSON_LIBRARY_PATH), Void, (Ptr{Void},), bson._bson)
