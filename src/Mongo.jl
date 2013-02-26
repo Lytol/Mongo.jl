@@ -5,7 +5,7 @@ module Mongo
 using BSON
 
 export MONGO_ERROR, MONGO_OK,
-       find, find_one
+       find, find_one, count
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -31,5 +31,17 @@ function find_one(client::MongoClient, namespace::String, query::BSONObject, fie
 end
 find_one(client::MongoClient, namespace::String, query::BSONObject) = find_one(client, namespace, query, BSONObject())
 find_one(client::MongoClient, namespace::String) = find_one(client, namespace, BSONObject(), BSONObject())
+
+
+function count(client::MongoClient, namespace::String, query::BSONObject)
+    db, collection = split(namespace, '.')
+    c = ccall((:mongo_count, MONGO_LIB), Float64, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}, Ptr{Void}),
+                client._mongo, bytestring(db), bytestring(collection), query._bson)
+    if c == MONGO_ERROR
+        error("Unable to perform Mongo count – mongo_count()")
+    end
+    convert(Int, c)
+end
+count(client::MongoClient, namespace::String) = count(client, namespace, BSONObject())
 
 end
