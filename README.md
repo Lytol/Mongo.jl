@@ -1,7 +1,7 @@
 Mongo.jl
 ========
 
-MongoDB bindings for Julia
+MongoDB bindings for [The Julia Language](http://julialang.org/)
 
 
 Installing
@@ -27,6 +27,12 @@ Getting Started
     cursor = find(client, "test.people", query, fields)
 
     for o in cursor
-        println("Name: $(get(o, "name")) / Age: $(get(o, "age"))")
+        println("Name: " * get(o, "name"))
+        println(dict(o))
     end
 
+
+Contributing / Reporting Issues
+-------------------------------
+
+Fork and send a pull request or create a [GitHub issue](https://github.com/Lytol/Mongo.jl/issues) and I'll try and respond in a timely fashion.

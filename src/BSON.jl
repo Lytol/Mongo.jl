@@ -2,7 +2,7 @@ module BSON
 
 export BSONObject,
        BSON_OK, BSON_ERROR,
-       print, get
+       dict, get
 
 const BSON_LIBRARY_PATH = "/usr/local/lib/libmongoc"
 const BSON_OK = 0
@@ -58,8 +58,17 @@ end
 
 BSONObject() = BSONObject(Dict{Any,Any}())
 
-function print(bson::BSONObject)
-    ccall((:bson_print, BSON_LIBRARY_PATH), Void, (Ptr{Void},), bson._bson)
+
+function dict(bson::BSONObject)
+    d = Dict{Any, Any}()
+    for (k,v) in bson
+        if v == BSONObject || v == Array
+            d[k] = dict(v)
+        else
+            d[k] = v
+        end
+    end
+    return d
 end
 
 function get(bson::BSONObject, key::String)
@@ -114,7 +123,7 @@ function value(_iterator::Ptr{Void})
         _str = Array(Uint8, 25)
         _oid = ccall((:bson_iterator_oid, BSON_LIBRARY_PATH), Ptr{Void}, (Ptr{Void},), _iterator)
         ccall((:bson_oid_to_string, BSON_LIBRARY_PATH), Void, (Ptr{Void}, Ptr{Uint8}), _oid, _str)
-        bytestring(_str)
+        bytestring(_str[1:24])
     elseif BSON_BOOL == bson_type
         _bool = ccall((:bson_iterator_bool, BSON_LIBRARY_PATH), Int32, (Ptr{Void},), _iterator)
         _bool == 0 ? false : true
