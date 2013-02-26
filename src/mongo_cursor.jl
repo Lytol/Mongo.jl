@@ -1,16 +1,16 @@
 export MongoCursor,
-       query, fields
-
-using BSON
+       query, fields, limit, skip
 
 type MongoCursor
     client::MongoClient
     namespace::String
     query::BSONObject
     fields::BSONObject
+    limit::Int
+    skip::Int
     _cursor::Ptr{Void}
 
-    function MongoCursor(client::MongoClient, namespace::String, q, f)
+    function MongoCursor(client::MongoClient, namespace::String, q, f, l, s)
         p = ccall((:mongo_cursor_create, MONGO_SHARED_LIBRARY), Ptr{Void}, ())
         if p == C_NULL
             error("Unable to create mongo cursor – mongo_cursor_create() failed")
@@ -21,18 +21,20 @@ type MongoCursor
             (Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
             p, client._mongo, bytestring(namespace))
 
-        cursor = new(client, namespace, q, f, p)
+        cursor = new(client, namespace, q, f, l, s, p)
         finalizer(cursor, destroy)
 
         query(cursor, q)
         fields(cursor, f)
+        limit(cursor, l)
+        skip(cursor, s)
 
         return cursor
     end
 end
 
-MongoCursor(client::MongoClient, namespace::String) = MongoCursor(client, namespace, BSONObject(), BSONObject())
-MongoCursor(client::MongoClient, namespace::String, query::BSONObject) = MongoCursor(client, namespace, query, BSONObject())
+MongoCursor(client::MongoClient, namespace::String) = MongoCursor(client, namespace, BSONObject(), BSONObject(), 0, 0)
+
 
 function query(cursor::MongoCursor, query::BSONObject)
     cursor.query = query
@@ -42,6 +44,16 @@ end
 function fields(cursor::MongoCursor, fields::BSONObject)
     cursor.fields = fields
     ccall((:mongo_cursor_set_fields, MONGO_SHARED_LIBRARY), Void, (Ptr{Void}, Ptr{Void}), cursor._cursor, fields._bson)
+end
+
+function limit(cursor::MongoCursor, limit::Int)
+    cursor.limit = limit
+    ccall((:mongo_cursor_set_limit, MONGO_SHARED_LIBRARY), Void, (Ptr{Void}, Int32), cursor._cursor, limit)
+end
+
+function skip(cursor::MongoCursor, skip::Int)
+    cursor.skip = skip
+    ccall((:mongo_cursor_set_skip, MONGO_SHARED_LIBRARY), Void, (Ptr{Void}, Int32), cursor._cursor, skip)
 end
 
 

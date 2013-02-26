@@ -24,7 +24,7 @@ Getting Started
     query = BSONObject({ "name" => "Brian" })
     fields = BSONObject({ "name" => 1, "age" => 1 })
 
-    cursor = MongoCursor(client, "test.people", query, fields)
+    cursor = find(client, "test.people", query, fields)
 
     for o in cursor
         println("Name: $(get(o, "name")) / Age: $(get(o, "age"))")
