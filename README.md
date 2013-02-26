@@ -10,12 +10,23 @@ Installing
 You must have the Mongo C drivers installed, see <https://github.com/mongodb/mongo-c-driver>.
 
 
-TODO
-----
 
-* BUG: Why can't I use `ccall` with just the lib name (sets version to 1 by default)
-* FEATURE: Iterate through cursor of all objects in a collection
-* FEATURE: Set query for cursor
-* FEATURE: Insert document into collection
-* FEATURE: Update document(s) in collection
+Getting Started
+---------------
+
+    require("Mongo.jl")
+
+    using Mongo
+    using BSON
+
+    client = MongoClient()
+
+    query = BSONObject({ "name" => "Brian" })
+    fields = BSONObject({ "name" => 1, "age" => 1 })
+
+    cursor = MongoCursor(client, "test.people", query, fields)
+
+    for o in cursor
+        println("Name: $(get(o, "name")) / Age: $(get(o, "age"))")
+    end
 

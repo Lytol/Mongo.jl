@@ -1,29 +1,49 @@
 export MongoCursor,
-       find
+       query, fields
 
 using BSON
 
 type MongoCursor
     client::MongoClient
     namespace::String
+    query::BSONObject
+    fields::BSONObject
     _cursor::Ptr{Void}
 
-    function MongoCursor(client::MongoClient, namespace::String)
-      p = ccall((:mongo_find, MONGO_SHARED_LIBRARY),
-            Ptr{Void},
-            (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}, Int32, Int32, Int32), 
-            client._mongo, bytestring(namespace), C_NULL, C_NULL, 0, 0, 0)
-      if p == C_NULL
-        error("Error while creating cursor")
-      end
+    function MongoCursor(client::MongoClient, namespace::String, q, f)
+        p = ccall((:mongo_cursor_create, MONGO_SHARED_LIBRARY), Ptr{Void}, ())
+        if p == C_NULL
+            error("Unable to create mongo cursor – mongo_cursor_create() failed")
+        end
 
-      cursor = new(client, namespace, p)
+        ccall((:mongo_cursor_init, MONGO_SHARED_LIBRARY),
+            Void,
+            (Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+            p, client._mongo, bytestring(namespace))
 
-      return cursor
+        cursor = new(client, namespace, q, f, p)
+        finalizer(cursor, destroy)
+
+        query(cursor, q)
+        fields(cursor, f)
+
+        return cursor
     end
 end
 
-find(client::MongoClient, namespace::String) = MongoCursor(client, namespace)
+MongoCursor(client::MongoClient, namespace::String) = MongoCursor(client, namespace, BSONObject(), BSONObject())
+MongoCursor(client::MongoClient, namespace::String, query::BSONObject) = MongoCursor(client, namespace, query, BSONObject())
+
+function query(cursor::MongoCursor, query::BSONObject)
+    cursor.query = query
+    ccall((:mongo_cursor_set_query, MONGO_SHARED_LIBRARY), Void, (Ptr{Void}, Ptr{Void}), cursor._cursor, query._bson)
+end
+
+function fields(cursor::MongoCursor, fields::BSONObject)
+    cursor.fields = fields
+    ccall((:mongo_cursor_set_fields, MONGO_SHARED_LIBRARY), Void, (Ptr{Void}, Ptr{Void}), cursor._cursor, fields._bson)
+end
+
 
 ## Iterator ##
 import Base.start, Base.next, Base.done
@@ -45,3 +65,12 @@ next(c::MongoCursor, errno::Int32) = begin
     (BSONObject(_bson), errno)
 end
 
+
+## Private Methods ##
+
+function destroy(cursor::MongoCursor)
+    errno = ccall((:mongo_cursor_destroy, MONGO_SHARED_LIBRARY), Int32, (Ptr{Void},), cursor._cursor)
+    if errno == MONGO_ERROR
+        error("Unable to destroy mongo cursor – mongo_cursor_destroy() failed")
+    end
+end

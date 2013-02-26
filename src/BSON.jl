@@ -56,6 +56,7 @@ BSONObject(dict::Dict{Any,Any}) = begin
     BSONObject(_bson)
 end
 
+BSONObject() = BSONObject(Dict{Any,Any}())
 
 function print(bson::BSONObject)
     ccall((:bson_print, BSON_LIBRARY_PATH), Void, (Ptr{Void},), bson._bson)

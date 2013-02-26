@@ -1,3 +1,5 @@
+require("src/BSON")
+
 module Mongo
 
 export MONGO_ERROR, MONGO_OK
