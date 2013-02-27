@@ -4,12 +4,16 @@ module Mongo
 
 using BSON
 
-export MONGO_ERROR, MONGO_OK,
-       find, find_one, count
+export UPSERT, MULTI,
+       find, find_one, count, update
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
 const MONGO_ERROR = -1
+
+# Update flags
+const UPSERT = convert(Int, 0x1)
+const MULTI = convert(Int, 0x2)
 
 include("mongo_client.jl")
 include("mongo_cursor.jl")
@@ -43,5 +47,15 @@ function count(client::MongoClient, namespace::String, query::BSONObject)
     convert(Int, c)
 end
 count(client::MongoClient, namespace::String) = count(client, namespace, BSONObject())
+
+
+function update(client::MongoClient, namespace::String, query::BSONObject, op::BSONObject, flags::Int)
+    errno = ccall((:mongo_update, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}, Int32, Ptr{Void}),
+                client._mongo, bytestring(namespace), query._bson, op._bson, convert(Int32, flags), C_NULL)
+    if errno == MONGO_ERROR
+        error("Unable to update – mongo_update()")
+    end
+end
+update(client::MongoClient, namespace::String, query::BSONObject, op::BSONObject) = update(client, namespace, query, op, 0)
 
 end

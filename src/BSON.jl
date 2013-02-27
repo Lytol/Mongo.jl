@@ -1,8 +1,13 @@
 module BSON
 
-export BSONObject,
+export BSONObject, ObjectID, 
        BSON_OK, BSON_ERROR,
        dict, get
+
+import Base.show,
+       Base.start,
+       Base.next,
+       Base.done
 
 const BSON_LIB = "libmongoc"
 const BSON_OK = 0
@@ -40,6 +45,32 @@ type BSONObject
     end
 end
 
+type ObjectID
+    id::String
+    _oid::Ptr{Void}
+
+    function ObjectID(id::String, _oid::Ptr{Void})
+        new(id, _oid)
+    end
+end
+
+ObjectID(id::String) = begin
+    _oid = Array(Uint8, 12)
+    ccall((:bson_oid_from_string, BSON_LIB), Void, (Ptr{Void}, Ptr{Uint8}), _oid, bytestring(id))
+    ObjectID(id, convert(Ptr{Void}, _oid))
+end
+
+ObjectID(_oid::Ptr{Void}) = begin
+    _str = Array(Uint8, 25)
+    ccall((:bson_oid_to_string, BSON_LIB), Void, (Ptr{Void}, Ptr{Uint8}), _oid, _str)
+    id = bytestring(_str[1:24])
+    ObjectID(id, _oid)
+end
+
+function show(io::IO, oid::ObjectID)
+    print(io, "ObjectID(\"$(oid.id)\")")
+end
+
 BSONObject(dict::Dict{Any,Any}) = begin
     _bson = ccall((:bson_create, BSON_LIB), Ptr{Void}, ())
     if _bson == C_NULL
@@ -57,6 +88,10 @@ BSONObject(dict::Dict{Any,Any}) = begin
 end
 
 BSONObject() = BSONObject(Dict{Any,Any}())
+
+function show(io::IO, bson::BSONObject)
+    show(io, dict(bson))
+end
 
 
 function dict(bson::BSONObject)
@@ -81,7 +116,6 @@ function get(bson::BSONObject, key::String)
 end
 
 ## Iterator ##
-import Base.start, Base.next, Base.done
 
 start(b::BSONObject) = begin
     _iterator = ccall((:bson_iterator_create, BSON_LIB), Ptr{Void}, ())
@@ -122,10 +156,8 @@ function value(_iterator::Ptr{Void})
         _str = ccall((:bson_iterator_string, BSON_LIB), Ptr{Uint8}, (Ptr{Void},), _iterator)
         bytestring(_str)
     elseif BSON_OID == bson_type
-        _str = Array(Uint8, 25)
         _oid = ccall((:bson_iterator_oid, BSON_LIB), Ptr{Void}, (Ptr{Void},), _iterator)
-        ccall((:bson_oid_to_string, BSON_LIB), Void, (Ptr{Void}, Ptr{Uint8}), _oid, _str)
-        bytestring(_str[1:24])
+        ObjectID(_oid)
     elseif BSON_BOOL == bson_type
         _bool = ccall((:bson_iterator_bool, BSON_LIB), Int32, (Ptr{Void},), _iterator)
         _bool == 0 ? false : true
@@ -179,6 +211,8 @@ function append(_bson::Ptr{Void}, k::String, v::Any)
         ccall((:bson_append_double, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Float64), _bson, bytestring(k), v)
     elseif Bool == t
         ccall((:bson_append_bool, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v == true ? 1 : 0)
+    elseif ObjectID == t
+        ccall((:bson_append_oid, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}), _bson, bytestring(k), v._oid)
     elseif Dict{Any,Any} == t
         ccall((:bson_append_start_object, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
         build(_bson, v)
