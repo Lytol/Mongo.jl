@@ -102,6 +102,8 @@ done(b::BSONObject, _iterator) = begin
     false
 end
 
+## Private methods ##
+
 function key(_iterator::Ptr{Void})
     str = ccall((:bson_iterator_key, BSON_LIB), Ptr{Uint8}, (Ptr{Void},), _iterator)
     bytestring(str)
@@ -157,8 +159,6 @@ function value(_iterator::Ptr{Void})
         error("Unsupported type: $bson_type")
     end
 end
-
-## Private methods ##
 
 function build(_bson::Ptr{Void}, dict::Dict{Any,Any})
     for (k,v) in dict

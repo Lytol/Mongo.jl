@@ -10,7 +10,6 @@ Installing
 You must have the Mongo C drivers installed, see <https://github.com/mongodb/mongo-c-driver>.
 
 
-
 Getting Started
 ---------------
 
@@ -32,7 +31,14 @@ Getting Started
     end
 
 
-Contributing / Reporting Issues
--------------------------------
+Contributing
+------------
 
-Fork and send a pull request or create a [GitHub issue](https://github.com/Lytol/Mongo.jl/issues) and I'll try and respond in a timely fashion.
+**Fork and send a pull request or create a [GitHub issue](https://github.com/Lytol/Mongo.jl/issues) and I'll try and respond quickly**
+
+### Running the Test Suite
+
+Make sure to `cd` to the project root and run the following:
+
+    julia test/run.jl
+
