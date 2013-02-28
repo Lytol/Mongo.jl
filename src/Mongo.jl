@@ -5,7 +5,7 @@ module Mongo
 using BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update
+       find, find_one, count, update, insert
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -53,9 +53,18 @@ function update(client::MongoClient, namespace::String, query::BSONObject, op::B
     errno = ccall((:mongo_update, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}, Int32, Ptr{Void}),
                 client._mongo, bytestring(namespace), query._bson, op._bson, convert(Int32, flags), C_NULL)
     if errno == MONGO_ERROR
-        error("Unable to update – mongo_update()")
+        error("Unable to update document(s) – mongo_update()")
     end
 end
 update(client::MongoClient, namespace::String, query::BSONObject, op::BSONObject) = update(client, namespace, query, op, 0)
+
+
+function insert(client::MongoClient, namespace::String, bson::BSONObject)
+    errno = ccall((:mongo_insert, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
+                client._mongo, bytestring(namespace), bson._bson, C_NULL)
+    if errno == MONGO_ERROR
+        error("Unable to insert document(s) – mongo_insert()")
+    end
+end
 
 end
