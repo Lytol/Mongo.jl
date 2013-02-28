@@ -5,7 +5,7 @@ module Mongo
 using BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update, insert
+       find, find_one, count, update, insert, remove
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -64,6 +64,14 @@ function insert(client::MongoClient, namespace::String, bson::BSONObject)
                 client._mongo, bytestring(namespace), bson._bson, C_NULL)
     if errno == MONGO_ERROR
         error("Unable to insert document(s) – mongo_insert()")
+    end
+end
+
+function remove(client::MongoClient, namespace::String, query::BSONObject)
+    errno = ccall((:mongo_remove, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
+        client._mongo, bytestring(namespace), query._bson, C_NULL)
+    if errno == MONGO_ERROR
+        error("Unable to remove document(s) – mongo_remove()")
     end
 end
 
