@@ -61,7 +61,14 @@ end
 import Base.start, Base.next, Base.done
 
 start(c::MongoCursor) = ccall((:mongo_cursor_next, MONGO_LIB), Int32, (Ptr{Void},), c._cursor)
-done(c::MongoCursor, errno::Int32) = (errno != MONGO_OK)
+done(c::MongoCursor, errno::Int32) = begin
+    if errno != MONGO_OK
+        reset(c)
+        return true
+    end
+    return false
+end
+
 next(c::MongoCursor, errno::Int32) = begin
     _current_bson = ccall((:mongo_cursor_bson, MONGO_LIB), Ptr{Void}, (Ptr{Void},), c._cursor)
 
@@ -85,4 +92,10 @@ function destroy(cursor::MongoCursor)
     if errno == MONGO_ERROR
         error("Unable to destroy mongo cursor – mongo_cursor_destroy() failed")
     end
+end
+
+function reset(cursor::MongoCursor)
+    ccall((:mongo_cursor_init, MONGO_LIB), Void,
+      (Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+      cursor._cursor, cursor.client._mongo, bytestring(cursor.namespace))
 end
