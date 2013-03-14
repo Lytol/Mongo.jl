@@ -1,4 +1,4 @@
-require("src/BSON")
+require("Mongo/src/BSON")
 
 module Mongo
 
