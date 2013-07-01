@@ -5,7 +5,7 @@ module Mongo
 using BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update, insert, remove
+       find, find_one, count, update, insert, remove, dropdb!
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -75,4 +75,12 @@ function remove(client::MongoClient, namespace::String, query::BSONObject)
     end
 end
 
+function dropdb!(client::MongoClient, dbname::String)
+    errno = ccall((:mongo_cmd_drop_db, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}),
+                  client._mongo, bytestring(dbname))
+    if errno == MONGO_ERROR
+        error("Unable to drop database $(repr(dbname))")
+    end
 end
+
+end # module Mongo
