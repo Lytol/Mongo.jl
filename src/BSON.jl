@@ -71,7 +71,8 @@ function show(io::IO, oid::ObjectID)
     print(io, "ObjectID(\"$(oid.id)\")")
 end
 
-BSONObject(dict::Dict{Any,Any}) = begin
+BSONObject(bson::BSONObject) = bson
+BSONObject(dict::Associative) = begin
     _bson = ccall((:bson_create, BSON_LIB), Ptr{Void}, ())
     if _bson == C_NULL
         error("Unable to create BSON object")

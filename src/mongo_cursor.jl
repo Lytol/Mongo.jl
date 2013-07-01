@@ -36,11 +36,13 @@ end
 MongoCursor(client::MongoClient, namespace::String) = MongoCursor(client, namespace, BSONObject(), BSONObject(), 0, 0)
 
 
+query(cursor::MongoCursor, query::Dict) = query(cursor, BSONObject(query))
 function query(cursor::MongoCursor, query::BSONObject)
     cursor.query = query
     ccall((:mongo_cursor_set_query, MONGO_LIB), Void, (Ptr{Void}, Ptr{Void}), cursor._cursor, query._bson)
 end
 
+fields(cursor::MongoCursor, fields::Dict) = query(cursor, BSONObject(fields))
 function fields(cursor::MongoCursor, fields::BSONObject)
     cursor.fields = fields
     ccall((:mongo_cursor_set_fields, MONGO_LIB), Void, (Ptr{Void}, Ptr{Void}), cursor._cursor, fields._bson)
@@ -81,7 +83,7 @@ next(c::MongoCursor, errno::Int32) = begin
 
     errno = ccall((:mongo_cursor_next, MONGO_LIB), Int32, (Ptr{Void},), c._cursor)
 
-    (BSONObject(_bson), errno)
+    (dict(BSONObject(_bson)), errno)
 end
 
 
