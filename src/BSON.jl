@@ -14,25 +14,25 @@ const BSON_OK = 0
 const BSON_ERROR = -1
 
 ## BSON types ##
-const BSON_EOO = 0
-const BSON_DOUBLE = 1
-const BSON_STRING = 2
-const BSON_OBJECT = 3
-const BSON_ARRAY = 4
-const BSON_BINDATA = 5
-const BSON_UNDEFINED = 6
-const BSON_OID = 7
-const BSON_BOOL = 8
-const BSON_DATE = 9
-const BSON_NULL = 10
-const BSON_REGEX = 11
-const BSON_DBREF = 12
-const BSON_CODE = 13
-const BSON_SYMBOL = 14
+const BSON_EOO        = 0
+const BSON_DOUBLE     = 1
+const BSON_STRING     = 2
+const BSON_OBJECT     = 3
+const BSON_ARRAY      = 4
+const BSON_BINDATA    = 5
+const BSON_UNDEFINED  = 6
+const BSON_OID        = 7
+const BSON_BOOL       = 8
+const BSON_DATE       = 9
+const BSON_NULL       = 10
+const BSON_REGEX      = 11
+const BSON_DBREF      = 12
+const BSON_CODE       = 13
+const BSON_SYMBOL     = 14
 const BSON_CODEWSCOPE = 15
-const BSON_INT = 16
-const BSON_TIMESTAMP = 17
-const BSON_LONG = 18
+const BSON_INT        = 16
+const BSON_TIMESTAMP  = 17
+const BSON_LONG       = 18
 
 
 type BSONObject
