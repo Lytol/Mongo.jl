@@ -208,42 +208,40 @@ function build(_bson::Ptr{Void}, dict::Dict{Any,Any})
     end
 end
 
-function append(_bson::Ptr{Void}, k::String, v::Any)
-    t = typeof(v)
-
-    if ASCIIString == t || UTF8String == t
-        ccall((:bson_append_string, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}), _bson, bytestring(k), bytestring(v))
-    elseif Int32 == t
-        ccall((:bson_append_int, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v)
-    elseif Int64 == t
-        ccall((:bson_append_long, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int64), _bson, bytestring(k), v)
-    elseif Float64 == t || Float32 == t
-        ccall((:bson_append_double, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Float64), _bson, bytestring(k), v)
-    elseif Bool == t
-        ccall((:bson_append_bool, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v == true ? 1 : 0)
-    elseif ObjectID == t
-        ccall((:bson_append_oid, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}), _bson, bytestring(k), v._oid)
-    elseif Dict{Any,Any} == t
-        ccall((:bson_append_start_object, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
-        build(_bson, v)
-        ccall((:bson_append_finish_object, BSON_LIB), Int32, (Ptr{Void},), _bson)
-    elseif Array{Any,1} == t
-        ccall((:bson_append_start_array, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
-        for i in 1:length(v)
-            append(_bson, string(i-1), v[i])
-        end
-        ccall((:bson_append_finish_array, BSON_LIB), Int32, (Ptr{Void},), _bson)
-    else
-        # Not supported:
-        #   BSON_REGEX
-        #   BSON_DATE
-        #   BSON_TIMESTAMP
-        #   BSON_BINDATA
-        #   BSON_CODE
-        #   BSON_CODEWSCOPE
-        #
-        error("Unsupported type: $t")
+append(_bson::Ptr{Void}, k::String, v::Union(ASCIIString, UTF8String)) =
+    ccall((:bson_append_string, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}), _bson, bytestring(k), bytestring(v))
+append(_bson::Ptr{Void}, k::String, v::Int32) =
+    ccall((:bson_append_int, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v)
+append(_bson::Ptr{Void}, k::String, v::Int64) =
+    ccall((:bson_append_long, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int64), _bson, bytestring(k), v)
+append(_bson::Ptr{Void}, k::String, v::Union(Float32, Float64)) =
+    ccall((:bson_append_double, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Float64), _bson, bytestring(k), v)
+append(_bson::Ptr{Void}, k::String, v::ObjectID) =
+    ccall((:bson_append_oid, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}), _bson, bytestring(k), v._oid)
+append(_bson::Ptr{Void}, k::String, v::Bool) =
+    ccall((:bson_append_bool, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v == true ? 1 : 0)
+function append(_bson::Ptr{Void}, k::String, v::Dict)
+    ccall((:bson_append_start_object, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
+    build(_bson, v)
+    ccall((:bson_append_finish_object, BSON_LIB), Int32, (Ptr{Void},), _bson)
+end
+function append(_bson::Ptr{Void}, k::String, v::Vector)
+    ccall((:bson_append_start_array, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
+    for i in 1:length(v)
+        append(_bson, string(i-1), v[i])
     end
+    ccall((:bson_append_finish_array, BSON_LIB), Int32, (Ptr{Void},), _bson)
+end
+function append(_bson::Ptr{Void}, k::String, v::Any)
+    # Not supported:
+    #   BSON_REGEX
+    #   BSON_DATE
+    #   BSON_TIMESTAMP
+    #   BSON_BINDATA
+    #   BSON_CODE
+    #   BSON_CODEWSCOPE
+    #
+    error("Unsupported type: $t")
 end
 
 function destroy(bson::BSONObject)
