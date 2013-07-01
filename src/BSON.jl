@@ -122,6 +122,7 @@ function Base.get(bson::BSONObject, key::String)
     end
     val
 end
+Base.getindex(bson::BSONObject, key) = get(bson, key)
 
 ## Iterator ##
 
