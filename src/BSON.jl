@@ -1,8 +1,8 @@
 module BSON
 
-export BSONObject, ObjectID, 
+export BSONObject, ObjectID,
        BSON_OK, BSON_ERROR,
-       dict, get
+       dict
 
 import Base.show,
        Base.start,
@@ -106,13 +106,21 @@ function dict(bson::BSONObject)
     return d
 end
 
-function get(bson::BSONObject, key::String)
+immutable Sentinel end
+function Base.get(bson::BSONObject, key::String, default)
     for (k,v) in bson
         if k == key
             return v
         end
     end
-    nothing
+    default
+end
+function Base.get(bson::BSONObject, key::String)
+    val = get(bson, key, Sentinel())
+    if is(val, Sentinel())
+        error("key not found: $(repr(key))")
+    end
+    val
 end
 
 ## Iterator ##
@@ -182,7 +190,7 @@ function value(_iterator::Ptr{Void})
         ccall((:bson_iterator_dispose, BSON_LIB), Void, (Ptr{Void},), _subiterator)
         a
     else
-        # Not supported: 
+        # Not supported:
         #   BSON_TIMESTAMP
         #   BSON_BINDATA
         #   BSON_CODE
@@ -224,7 +232,7 @@ function append(_bson::Ptr{Void}, k::String, v::Any)
         end
         ccall((:bson_append_finish_array, BSON_LIB), Int32, (Ptr{Void},), _bson)
     else
-        # Not supported: 
+        # Not supported:
         #   BSON_REGEX
         #   BSON_DATE
         #   BSON_TIMESTAMP

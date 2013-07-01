@@ -17,7 +17,8 @@ using FactCheck, BSON
     @fact "Values can be retrieved from BSON objects" begin
         bson = BSONObject({"name" => "Brian"})
         get(bson, "name") => "Brian"
-        get(bson, "age") => nothing
+        get(bson, "age")  => :throws
+        get(bson, "age", 123) => 123
     end
 
     @fact "BSON objects are iterable" begin
