@@ -1,3 +1,1 @@
-require("test")
-
-tests("test/")
+include("test_bson.jl")

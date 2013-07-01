@@ -1,30 +1,32 @@
 require("src/BSON")
-using BSON
+using FactCheck, BSON
 
-test_context("BSON")
+@facts "BSON" begin
 
-test_group("BSONObject()")
-bson = BSONObject()
-@test bson._bson != C_NULL
-@test dict(bson) == Dict{Any,Any}()
+    @fact "BSON objects are not null" begin
+        bson = BSONObject()
+        bson._bson => not(C_NULL)
+        dict(bson) => Dict{Any,Any}()
+    end
 
-test_group("BSONObject(Dict)")
-bson = BSONObject({ "name" => "Brian" })
-@test dict(bson) == { "name" => "Brian" }
+    @fact "BSON objects can be created from Dicts" begin
+        bson = BSONObject({"name" => "Brian"})
+        dict(bson) => {"name" => "Brian"}
+    end
 
-test_group("dict(bson)")
-bson = BSONObject({ "name" => "Brian" })
-@test dict(bson) == { "name" => "Brian" }
+    @fact "Values can be retrieved from BSON objects" begin
+        bson = BSONObject({"name" => "Brian"})
+        get(bson, "name") => "Brian"
+        get(bson, "age") => nothing
+    end
 
-test_group("get(bson, key)")
-bson = BSONObject({ "name" => "Brian" })
-@test get(bson, "name") == "Brian"
-@test get(bson, "age") == nothing
+    @fact "BSON objects are iterable" begin
+        bson = BSONObject({"name" => "Brian", "age" => 30})
+        d = Dict{Any,Any}()
+        for (k,v) in bson
+            d[k] = v
+        end
+        d => {"name" => "Brian", "age" => 30}
+    end
 
-test_group("Iterator")
-bson = BSONObject({ "name" => "Brian", "age" => 30 })
-d = Dict{Any,Any}()
-for (k,v) in bson
-  d[k] = v
 end
-@test d == { "name" => "Brian", "age" => 30 }
