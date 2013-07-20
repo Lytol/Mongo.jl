@@ -12,12 +12,11 @@ const MONGO_OK = 0
 const MONGO_ERROR = -1
 
 # Update flags
-const UPSERT = convert(Int, 0x1)
-const MULTI = convert(Int, 0x2)
+const UPSERT = 1
+const MULTI  = 2
 
 include("mongo_client.jl")
 include("mongo_cursor.jl")
-
 
 function find(client::MongoClient, namespace::String, query, fields, limit::Int, skip::Int)
     MongoCursor(client, namespace, BSONObject(query), BSONObject(fields), limit, skip)
@@ -25,7 +24,6 @@ end
 find(client::MongoClient, namespace::String, query, fields) = find(client, namespace, query, fields, 0, 0)
 find(client::MongoClient, namespace::String, query) = find(client, namespace, query, BSONObject(), 0, 0)
 find(client::MongoClient, namespace::String) = find(client, namespace, BSONObject(), BSONObject(), 0, 0)
-
 
 function find_one(client::MongoClient, namespace::String, query, fields)
     bson = BSONObject()
@@ -35,7 +33,6 @@ function find_one(client::MongoClient, namespace::String, query, fields)
 end
 find_one(client::MongoClient, namespace::String, query) = find_one(client, namespace, query, BSONObject())
 find_one(client::MongoClient, namespace::String) = find_one(client, namespace, BSONObject(), BSONObject())
-
 
 function count(client::MongoClient, namespace::String, query)
     db, collection = split(namespace, '.')
@@ -48,7 +45,6 @@ function count(client::MongoClient, namespace::String, query)
 end
 count(client::MongoClient, namespace::String) = count(client, namespace, BSONObject())
 
-
 function update(client::MongoClient, namespace::String, query, op, flags::Int)
     errno = ccall((:mongo_update, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}, Int32, Ptr{Void}),
                 client._mongo, bytestring(namespace), BSONObject(query)._bson, BSONObject(op)._bson, convert(Int32, flags), C_NULL)
@@ -57,7 +53,6 @@ function update(client::MongoClient, namespace::String, query, op, flags::Int)
     end
 end
 update(client::MongoClient, namespace::String, query, op) = update(client, namespace, query, op, 0)
-
 
 function insert(client::MongoClient, namespace::String, bson)
     errno = ccall((:mongo_insert, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
