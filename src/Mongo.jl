@@ -5,7 +5,7 @@ module Mongo
 using BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update, insert, remove
+       find, find_one, count, update, insert, remove, run_cmd
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -18,6 +18,21 @@ const MULTI = convert(Int, 0x2)
 include("mongo_client.jl")
 include("mongo_cursor.jl")
 
+# run_cmd(), cmd is the name of the command to run,
+# the named arguments passed in args are the options for the command
+# Ex.
+#       run_cmd(client, "db", "collStats", "fs.files", scale=1024)
+
+function run_cmd(client::MongoClient, dbname::String,
+                 cmd::String, val::Any=1; args...)
+    ops = {string(arg[1]) => arg[2] for arg in args}
+    fcmd = BSONObject(merge!({cmd => val}, ops))
+    bson = BSONObject()
+    errno = ccall((:mongo_run_command, MONGO_LIB), Int32,
+                  (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
+                  client._mongo, bytestring(dbname), fcmd._bson, bson._bson)
+    errno == MONGO_ERROR ? nothing : bson
+end
 
 function find(client::MongoClient, namespace::String, query::BSONObject, fields::BSONObject, limit::Int, skip::Int)
     MongoCursor(client, namespace, query, fields, limit, skip)
@@ -25,7 +40,6 @@ end
 find(client::MongoClient, namespace::String, query::BSONObject, fields::BSONObject) = find(client, namespace, query, fields, 0, 0)
 find(client::MongoClient, namespace::String, query::BSONObject) = find(client, namespace, query, BSONObject(), 0, 0)
 find(client::MongoClient, namespace::String) = find(client, namespace, BSONObject(), BSONObject(), 0, 0)
-
 
 function find_one(client::MongoClient, namespace::String, query::BSONObject, fields::BSONObject)
     bson = BSONObject()
