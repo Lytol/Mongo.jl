@@ -1,4 +1,3 @@
-require("src/Mongo")
 using FactCheck, Mongo
 
 function with_test_db(f)

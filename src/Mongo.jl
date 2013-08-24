@@ -1,8 +1,7 @@
-require("Mongo/src/BSON")
-
 module Mongo
 
-using BSON
+include("BSON.jl")
+using Mongo.BSON
 
 export UPSERT, MULTI,
        find, find_one, count, update, insert, remove, dropdb!

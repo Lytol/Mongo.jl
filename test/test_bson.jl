@@ -1,5 +1,4 @@
-require("src/BSON")
-using FactCheck, BSON
+using FactCheck, Mongo.BSON
 
 facts("BSON") do
 
