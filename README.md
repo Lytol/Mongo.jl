@@ -16,42 +16,40 @@ Getting Started
     require("Mongo.jl")
 
     using Mongo
-    using BSON
 
     client = MongoClient()   # Defaults to MongoClient("localhost", 27017)
 
     # Insert a few documents
-    insert(client, "test.people", BSONObject({ "name" => "Brian", "age" => 30, "hobbies" => {"surfing", "coding", "video games"}}))
-    insert(client, "test.people", BSONObject({ "name" => "Lizzie", "age" => 30, "hobbies" => {"traveling", "crafts", "movies"}}))
-    insert(client, "test.people", BSONObject({ "name" => "Adam", "age" => 31, "hobbies" => {"climbing", "cycling"}}))
+    insert(client, "test.people", { "name" => "Brian", "age" => 30, "hobbies" => {"surfing", "coding", "video games"}})
+    insert(client, "test.people", { "name" => "Lizzie", "age" => 30, "hobbies" => {"traveling", "crafts", "movies"}})
+    insert(client, "test.people", { "name" => "Adam", "age" => 31, "hobbies" => {"climbing", "cycling"}})
 
     # Find Brian
-    bson = find_one(client, "test.people", BSONObject({ "name" => "Brian" }))
+    bson = find_one(client, "test.people", { "name" => "Brian" })
 
     # Change his age to 31
-    update(client, "test.people", BSONObject({ "_id" => get(bson, "_id") }), BSONObject({ "\$set" => { "age" => 31 }}))
+    update(client, "test.people", { "_id" => get(bson, "_id") }, { "\$set" => { "age" => 31 }})
 
     # Change everyone's age to 30
-    update(client, "test.people", BSONObject(), BSONObject({ "\$set" => { "age" => 30 }}), MULTI)
+    update(client, "test.people", Dict(), { "\$set" => { "age" => 30 }}, MULTI)
 
     # Change Adam back to 31
-    update(client, "test.people", BSONObject({ "name" => "Adam" }), BSONObject({ "\$set" => { "age" => 31 }}))
+    update(client, "test.people", { "name" => "Adam" }, { "\$set" => { "age" => 31 }})
 
     # Find everyone's name and age and display
-    query = BSONObject()
-    fields = BSONObject({ "name" => 1, "age" => 1 })
+    fields = { "name" => 1, "age" => 1 }
 
-    cursor = find(client, "test.people", query, fields)
+    cursor = find(client, "test.people", Dict(), fields)
 
     for o in cursor
         println("Name: " * get(o, "name") * " / Age: " * string(get(o, "age")))     # Or simply, println(o)
     end
 
     # Remove Lizze
-    remove(client, "test.people", BSONObject({ "name" => "Lizzie" }))
+    remove(client, "test.people", { "name" => "Lizzie" })
 
     # Actually, let's just remove everyone
-    remove(client, "test.people", BSONObject())
+    remove(client, "test.people", Dict())
 
 
 Contributing
@@ -64,4 +62,3 @@ Contributing
 Make sure to `cd` to the project root and run the following:
 
     julia test/run.jl
-
