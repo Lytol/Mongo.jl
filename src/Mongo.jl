@@ -4,7 +4,7 @@ include("BSON.jl")
 using Mongo.BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update, insert, remove, dropdb!, run_cmd
+       find, find_one, count, update, insert, remove, dropdb!, run_command
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -17,19 +17,11 @@ const MULTI  = 2
 include("mongo_client.jl")
 include("mongo_cursor.jl")
 
-# run_cmd(), cmd is the name of the command to run,
-# the named arguments passed in args are the options for the command
-# Ex.
-#       run_cmd(client, "db", "collStats", "fs.files", scale=1024)
-
-function run_cmd(client::MongoClient, dbname::String,
-                 cmd::String, val::Any=1; args...)
-    ops = {string(arg[1]) => arg[2] for arg in args}
-    fcmd = BSONObject(merge!({cmd => val}, ops))
+function run_command(client::MongoClient, dbname::String, command::BSONObject)
     bson = BSONObject()
     errno = ccall((:mongo_run_command, MONGO_LIB), Int32,
                   (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
-                  client._mongo, bytestring(dbname), fcmd._bson, bson._bson)
+                  client._mongo, bytestring(dbname), command._bson, bson._bson)
     errno == MONGO_ERROR ? nothing : bson
 end
 
