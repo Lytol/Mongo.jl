@@ -7,7 +7,7 @@ function with_test_db(f)
     try
         f(client, dbname)
     finally
-        dropdb!(client, dbname)
+        run_command(client, dbname, { "dropDatabase" => 1 })
     end
 end
 

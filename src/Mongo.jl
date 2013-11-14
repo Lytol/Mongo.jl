@@ -4,7 +4,7 @@ include("BSON.jl")
 using Mongo.BSON
 
 export UPSERT, MULTI,
-       find, find_one, count, update, insert, remove, dropdb!, run_command
+       find, find_one, count, update, insert, remove, run_command
 
 const MONGO_LIB = "libmongoc"
 const MONGO_OK = 0
@@ -17,13 +17,6 @@ const MULTI  = 2
 include("mongo_client.jl")
 include("mongo_cursor.jl")
 
-function run_command(client::MongoClient, dbname::String, command::BSONObject)
-    bson = BSONObject()
-    errno = ccall((:mongo_run_command, MONGO_LIB), Int32,
-                  (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
-                  client._mongo, bytestring(dbname), command._bson, bson._bson)
-    errno == MONGO_ERROR ? nothing : bson
-end
 
 function find(client::MongoClient, namespace::String, query, fields, limit::Int, skip::Int)
     MongoCursor(client, namespace, BSONObject(query), BSONObject(fields), limit, skip)
@@ -77,12 +70,12 @@ function remove(client::MongoClient, namespace::String, query)
     end
 end
 
-function dropdb!(client::MongoClient, dbname::String)
-    errno = ccall((:mongo_cmd_drop_db, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Uint8}),
-                  client._mongo, bytestring(dbname))
-    if errno == MONGO_ERROR
-        error("Unable to drop database $(repr(dbname))")
-    end
+function run_command(client::MongoClient, dbname::String, command)
+    bson = BSONObject()
+    errno = ccall((:mongo_run_command, MONGO_LIB), Int32,
+                  (Ptr{Void}, Ptr{Uint8}, Ptr{Void}, Ptr{Void}),
+                  client._mongo, bytestring(dbname), BSONObject(command)._bson, bson._bson)
+    errno == MONGO_ERROR ? nothing : dict(bson)
 end
 
 end # module Mongo
