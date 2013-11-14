@@ -73,7 +73,7 @@ end
 
 BSONObject(bson::BSONObject) = bson
 BSONObject(dict::Associative) = begin
-    _bson = ccall((:bson_create, BSON_LIB), Ptr{Void}, ())
+    _bson = ccall((:bson_alloc, BSON_LIB), Ptr{Void}, ())
     if _bson == C_NULL
         error("Unable to create BSON object")
     end
@@ -128,7 +128,7 @@ Base.getindex(bson::BSONObject, key) = get(bson, key)
 ## Iterator ##
 
 start(b::BSONObject) = begin
-    _iterator = ccall((:bson_iterator_create, BSON_LIB), Ptr{Void}, ())
+    _iterator = ccall((:bson_iterator_alloc, BSON_LIB), Ptr{Void}, ())
     ccall((:bson_iterator_init, BSON_LIB), Void, (Ptr{Void}, Ptr{Void}), _iterator, b._bson)
     _iterator
 end
@@ -140,7 +140,7 @@ end
 done(b::BSONObject, _iterator) = begin
     bson_type = ccall((:bson_iterator_next, BSON_LIB), Int32, (Ptr{Void},), _iterator)
     if bson_type == BSON_EOO
-        ccall((:bson_iterator_dispose, BSON_LIB), Void, (Ptr{Void},), _iterator)
+        ccall((:bson_iterator_dealloc, BSON_LIB), Void, (Ptr{Void},), _iterator)
         return true
     end
     false
@@ -179,17 +179,17 @@ function value(_iterator::Ptr{Void})
     elseif BSON_NULL == bson_type || BSON_UNDEFINED == bson_type
         nothing
     elseif BSON_OBJECT == bson_type
-        _bson = ccall((:bson_create, BSON_LIB), Ptr{Void}, ())
+        _bson = ccall((:bson_alloc, BSON_LIB), Ptr{Void}, ())
         ccall((:bson_iterator_subobject, BSON_LIB), Void, (Ptr{Void}, Ptr{Void}), _iterator, _bson)
         BSONObject(_bson)
     elseif BSON_ARRAY == bson_type
         a = {}
-        _subiterator = ccall((:bson_iterator_create, BSON_LIB), Ptr{Void}, ())
+        _subiterator = ccall((:bson_iterator_alloc, BSON_LIB), Ptr{Void}, ())
         ccall((:bson_iterator_subiterator, BSON_LIB), Void, (Ptr{Void}, Ptr{Void}), _iterator, _subiterator)
         while(ccall((:bson_iterator_next, BSON_LIB), Int32, (Ptr{Void},), _subiterator) != BSON_EOO)
             push!(a, value(_subiterator))
         end
-        ccall((:bson_iterator_dispose, BSON_LIB), Void, (Ptr{Void},), _subiterator)
+        ccall((:bson_iterator_dealloc, BSON_LIB), Void, (Ptr{Void},), _subiterator)
         a
     else
         # Not supported:

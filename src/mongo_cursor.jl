@@ -11,9 +11,9 @@ type MongoCursor
     _cursor::Ptr{Void}
 
     function MongoCursor(client::MongoClient, namespace::String, q, f, l, s)
-        p = ccall((:mongo_cursor_create, MONGO_LIB), Ptr{Void}, ())
+        p = ccall((:mongo_cursor_alloc, MONGO_LIB), Ptr{Void}, ())
         if p == C_NULL
-            error("Unable to create mongo cursor – mongo_cursor_create() failed")
+            error("Unable to create mongo cursor – mongo_cursor_alloc() failed")
         end
 
         ccall((:mongo_cursor_init, MONGO_LIB),
@@ -75,7 +75,7 @@ next(c::MongoCursor, errno::Int32) = begin
     _current_bson = ccall((:mongo_cursor_bson, MONGO_LIB), Ptr{Void}, (Ptr{Void},), c._cursor)
 
     # Create a copy of the bson
-    _bson = ccall((:bson_create, MONGO_LIB), Ptr{Void}, ())
+    _bson = ccall((:bson_alloc, MONGO_LIB), Ptr{Void}, ())
     errno = ccall((:bson_copy, MONGO_LIB), Int32, (Ptr{Void}, Ptr{Void}), _bson, _current_bson)
     if errno == BSON_ERROR
       error("Could not copy BSON object")

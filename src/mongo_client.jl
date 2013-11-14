@@ -6,7 +6,7 @@ type MongoClient
     _mongo::Ptr{Void}
 
     function MongoClient(host::String, port::Integer)
-        p = ccall((:mongo_create, MONGO_LIB), Ptr{Void},  ())
+        p = ccall((:mongo_alloc, MONGO_LIB), Ptr{Void},  ())
         if p == C_NULL
             error("Could not create a mongo object")
         end

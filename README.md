@@ -25,10 +25,10 @@ Getting Started
     insert(client, "test.people", { "name" => "Adam", "age" => 31, "hobbies" => {"climbing", "cycling"}})
 
     # Find Brian
-    bson = find_one(client, "test.people", { "name" => "Brian" })
+    obj = find_one(client, "test.people", { "name" => "Brian" })
 
     # Change his age to 31
-    update(client, "test.people", { "_id" => get(bson, "_id") }, { "\$set" => { "age" => 31 }})
+    update(client, "test.people", { "_id" => obj["_id"] }, { "\$set" => { "age" => 31 }})
 
     # Change everyone's age to 30
     update(client, "test.people", Dict(), { "\$set" => { "age" => 30 }}, MULTI)
@@ -42,7 +42,7 @@ Getting Started
     cursor = find(client, "test.people", Dict(), fields)
 
     for o in cursor
-        println("Name: " * get(o, "name") * " / Age: " * string(get(o, "age")))     # Or simply, println(o)
+        println("Name: " * o["name"] * " / Age: " * string(o["age"]))  # Or simply, println(o)
     end
 
     # Remove Lizze
@@ -50,6 +50,18 @@ Getting Started
 
     # Actually, let's just remove everyone
     remove(client, "test.people", Dict())
+
+
+Development
+-----------
+
+### Running the Test Suite
+
+* Install the [FactCheck](https://github.com/zachallaun/FactCheck.jl) package: `Pkg.add("FactCheck")`
+
+* MongoDB server must be running on localhost
+
+* `cd` to the project root and run the following: `julia test/run.jl`
 
 
 Contributing

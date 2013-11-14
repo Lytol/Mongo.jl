@@ -17,7 +17,7 @@ facts("BSON") do
         bson = BSONObject({"name" => "Brian"})
         @fact get(bson, "name") => "Brian"
         @fact bson["name"] => "Brian"
-        @fact get(bson, "age")  => :throws
+        @fact_throws get(bson, "age")
         @fact get(bson, "age", 123) => 123
     end
 
