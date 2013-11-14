@@ -57,9 +57,7 @@ Development
 
 ### Running the Test Suite
 
-* Install the [FactCheck](https://github.com/zachallaun/FactCheck.jl) package: `Pkg.add("FactCheck")`
-
-* MongoDB server must be running on localhost
+NOTE: _MongoDB server must be running on localhost_
 
 * `cd` to the project root and run the following: `julia test/run.jl`
 
@@ -68,9 +66,3 @@ Contributing
 ------------
 
 **Fork and send a pull request or create a [GitHub issue](https://github.com/Lytol/Mongo.jl/issues) and I'll try and respond quickly**
-
-### Running the Test Suite
-
-Make sure to `cd` to the project root and run the following:
-
-    julia test/run.jl
