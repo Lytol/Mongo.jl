@@ -13,8 +13,6 @@ You must have the Mongo C drivers installed, see <https://github.com/mongodb/mon
 Getting Started
 ---------------
 
-    require("Mongo.jl")
-
     using Mongo
 
     client = MongoClient()   # Defaults to MongoClient("localhost", 27017)
