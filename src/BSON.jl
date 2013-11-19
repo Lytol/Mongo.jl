@@ -94,17 +94,18 @@ function show(io::IO, bson::BSONObject)
     show(io, dict(bson))
 end
 
-
 function dict(bson::BSONObject)
-    d = Dict{Any, Any}()
-    for (k,v) in bson
-        if v == BSONObject || v == Array
-            d[k] = dict(v)
-        else
-            d[k] = v
-        end
-    end
-    return d
+   d = Dict{Any, Any}()
+   for (k,v) in bson
+       if typeof(v) == BSONObject
+           d[k] = dict(v)
+       elseif typeof(v) == ObjectID
+           d[k] = v.id
+       else
+           d[k] = v
+       end
+   end
+   return d
 end
 
 immutable Sentinel end
@@ -180,7 +181,7 @@ function value(_iterator::Ptr{Void})
         nothing
     elseif BSON_OBJECT == bson_type
         _bson = ccall((:bson_alloc, BSON_LIB), Ptr{Void}, ())
-        ccall((:bson_iterator_subobject, BSON_LIB), Void, (Ptr{Void}, Ptr{Void}), _iterator, _bson)
+        ccall((:bson_iterator_subobject_init, BSON_LIB, false), Void, (Ptr{Void}, Ptr{Void}), _iterator, _bson)
         BSONObject(_bson)
     elseif BSON_ARRAY == bson_type
         a = {}
