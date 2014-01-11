@@ -220,6 +220,8 @@ append(_bson::Ptr{Void}, k::String, v::ObjectID) =
     ccall((:bson_append_oid, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Ptr{Void}), _bson, bytestring(k), v._oid)
 append(_bson::Ptr{Void}, k::String, v::Bool) =
     ccall((:bson_append_bool, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}, Int32), _bson, bytestring(k), v == true ? 1 : 0)
+append(_bson::Ptr{Void}, k::String, v::Nothing) =
+    ccall((:bson_append_null, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
 function append(_bson::Ptr{Void}, k::String, v::Dict)
     ccall((:bson_append_start_object, BSON_LIB), Int32, (Ptr{Void}, Ptr{Uint8}), _bson, bytestring(k))
     build(_bson, v)
