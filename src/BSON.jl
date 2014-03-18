@@ -242,7 +242,8 @@ function append(_bson::Ptr{Void}, k::String, v::Any)
     #   BSON_CODE
     #   BSON_CODEWSCOPE
     #
-    error("Unsupported type: $t")
+    @show _bson k v
+    error("Unsupported type")
 end
 
 function destroy(bson::BSONObject)
