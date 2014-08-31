@@ -26,7 +26,7 @@ export show
 
 destroy(client::MongoClient) =
     ccall(
-        (:mongoc_client_destroy, BSON_LIB),
+        (:mongoc_client_destroy, MONGO_LIB),
         Void, (Ptr{Void},),
         client._wrap_
         )

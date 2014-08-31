@@ -1,5 +1,9 @@
-using LibMongo
-using Base.Test
+using FactCheck, LibBSON, Mongo
 
-# write your own tests here
-@test 1 == 1
+facts("insert") do
+    client = MongoClient()
+    collection = MongoCollection(client, "foo", "bar")
+    document = BSON()
+    append(document, "foo", 43)
+    insert(collection, document)
+end
