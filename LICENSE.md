@@ -1,4 +1,4 @@
-LibBSON is licensed under the simplified BSD license:
+Mongo.jl is licensed under the simplified BSD license:
 
 > Copyright (c) 2014, Peter Zion <peter.zion@gmail.com>
 > All rights reserved.

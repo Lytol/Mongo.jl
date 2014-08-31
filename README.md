@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/pzion/LibMongo.jl.svg?branch=master)](https://travis-ci.org/pzion/LibMongo.jl)
+[![Build Status](https://travis-ci.org/pzion/Mongo.jl.svg?branch=master)](https://travis-ci.org/pzion/Mongo.jl)
 
-LibMongo.jl
+Mongo.jl
 ===========
 
 [MongoDB](http://www.mongodb.org) bindings for [The Julia Language](http://julialang.org/)
