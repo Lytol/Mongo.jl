@@ -1,9 +1,14 @@
 using FactCheck, LibBSON, Mongo
 
-facts("insert") do
+facts("Mongo: insert") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
     document = BSON()
-    append(document, "foo", 43)
+    oid = BSONOID()
+    append(document, "_id", oid)
+    append(document, "hello", "before")
     insert(collection, document)
+    q = BSON()
+    u = BSON("{\"\$set\": {\"hello\": \"after\"}}")
+    update(collection, q, u, MongoUpdateFlags.MultiUpdate)
 end

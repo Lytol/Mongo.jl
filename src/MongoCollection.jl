@@ -28,13 +28,16 @@ show(io::IO, collection::MongoCollection) = begin
 end
 export show
 
-const MONGO_INSERT_NONE = 0
-const MONGO_INSERT_CONTINUE_ON_ERROR = 1
+baremodule MongoInsertFlags
+    const None = 0
+    const ContinueOnError = 1
+end
+export MongoInsertFlags
 
 insert(
     collection::MongoCollection,
     document::BSON,
-    flags::Int = MONGO_INSERT_NONE
+    flags::Int = MongoInsertFlags.None
     ) = begin
     bsonError = BSONError()
     ccall(
@@ -48,6 +51,33 @@ insert(
         ) || error("insert: $(string(bsonError))")
 end
 export insert
+
+baremodule MongoUpdateFlags
+    const None = 0
+    const Upsert = 1
+    const MultiUpdate = 2
+end
+export MongoUpdateFlags
+
+update(
+    collection::MongoCollection,
+    queryBSON::BSON,
+    updateBSON::BSON,
+    flags::Int = MongoUpdateFlags.None
+    ) = begin
+    bsonError = BSONError()
+    ccall(
+        (:mongoc_collection_update, MONGO_LIB),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+        collection._wrap_,
+        flags,
+        queryBSON._wrap_,
+        updateBSON._wrap_,
+        C_NULL,
+        bsonError._wrap_
+        ) || error("update: $(string(bsonError))")
+end
+export update
 
 # Private
 
