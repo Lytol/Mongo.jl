@@ -50,6 +50,11 @@ insert(
         bsonError._wrap_
         ) || error("insert: $(string(bsonError))")
 end
+insert(
+    collection::MongoCollection,
+    dict::Associative,
+    flags::Int = MongoInsertFlags.None
+    ) = insert(collection, BSONObject(dict), flags)
 export insert
 
 baremodule MongoUpdateFlags
