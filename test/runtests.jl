@@ -1,11 +1,22 @@
 using FactCheck, LibBSON, Mongo
 
-facts("Mongo: insert") do
+facts("Mongo") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
     oid = BSONOID()
-    insert(collection, BSONObject({"_id"=>oid, "hello"=>"before"}))
-    update(collection, BSONObject({"_id"=>oid}), BSONObject({"\$set"=>{"hello"=>"after"}}), MongoUpdateFlags.MultiUpdate)
+
+    context("insert") do
+        insert(collection, {"_id"=>oid, "hello"=>"before"})
+        @fact count(collection, {"_id"=>oid}) => 1
+    end
+
+    context("update") do
+        update(
+            collection,
+            BSONObject({"_id"=>oid}),
+            BSONObject({"\$set"=>{"hello"=>"after"}})
+            )
+    end
 end
 
 facts("Mongo: bad host/port") do

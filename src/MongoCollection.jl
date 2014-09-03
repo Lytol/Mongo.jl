@@ -36,7 +36,7 @@ export MongoInsertFlags
 
 insert(
     collection::MongoCollection,
-    document::BSONObject,
+    document::BSONObject;
     flags::Int = MongoInsertFlags.None
     ) = begin
     bsonError = BSONError()
@@ -52,9 +52,9 @@ insert(
 end
 insert(
     collection::MongoCollection,
-    dict::Associative,
+    dict::Associative;
     flags::Int = MongoInsertFlags.None
-    ) = insert(collection, BSONObject(dict), flags)
+    ) = insert(collection, BSONObject(dict), flags=flags)
 export insert
 
 baremodule MongoUpdateFlags
@@ -67,7 +67,7 @@ export MongoUpdateFlags
 update(
     collection::MongoCollection,
     queryBSON::BSONObject,
-    updateBSON::BSONObject,
+    updateBSON::BSONObject;
     flags::Int = MongoUpdateFlags.None
     ) = begin
     bsonError = BSONError()
@@ -84,7 +84,54 @@ update(
 end
 export update
 
-# Private
+baremodule MongoQueryFlags
+    const None              = 0
+    const TailableCursor    = 2
+    const SlaveIO           = 4
+    const OplogReplay       = 8
+    const NoCursorTimeout   = 16
+    const AwaitData         = 32
+    const Exhaust           = 64
+    const Partial           = 128
+end
+export MongoQueryFlags
+
+count(
+    collection::MongoCollection,
+    queryBSON::BSONObject;
+    skip::Int64 = 0,
+    limit::Int64 = -1,
+    flags::Int = MongoQueryFlags.None
+    ) = begin
+    bsonError = BSONError()
+    result = ccall(
+        (:mongoc_collection_count, libmongoc),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Int64, Int64, Ptr{Void}, Ptr{Uint8}),
+        collection._wrap_,
+        flags,
+        queryBSON._wrap_,
+        skip,
+        limit,
+        C_NULL,
+        bsonError._wrap_
+        )
+    result < 0 && error("count: $(string(bsonError))")
+    return result
+end
+count(
+    collection::MongoCollection,
+    query::Associative;
+    skip::Int64 = 0,
+    limit::Int64 = -1,
+    flags::Int = MongoQueryFlags.None
+    ) = count(
+        collection,
+        BSONObject(query),
+        skip = skip,
+        limit = limit,
+        flags = flags
+        )
+export count
 
 destroy(collection::MongoCollection) =
     ccall(
