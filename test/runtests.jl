@@ -1,5 +1,7 @@
 using FactCheck, LibBSON, Mongo
 
+include("deps/deps.jl")
+
 facts("Mongo") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
