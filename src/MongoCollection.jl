@@ -6,7 +6,7 @@ type MongoCollection
         nameCStr = bytestring(name)
         collection = new(
             ccall(
-                (:mongoc_client_get_collection, MONGO_LIB),
+                (:mongoc_client_get_collection, libmongoc),
                 Ptr{Void}, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}),
                 client._wrap_, dbCStr, nameCStr
                 )
@@ -19,7 +19,7 @@ export MongoCollection
 
 show(io::IO, collection::MongoCollection) = begin
     nameCStr = ccall(
-        (:mongoc_collection_get_name, MONGO_LIB),
+        (:mongoc_collection_get_name, libmongoc),
         Ptr{Uint8}, (Ptr{Void},),
         collection._wrap_
         )
@@ -36,12 +36,12 @@ export MongoInsertFlags
 
 insert(
     collection::MongoCollection,
-    document::BSON,
+    document::BSONObject,
     flags::Int = MongoInsertFlags.None
     ) = begin
     bsonError = BSONError()
     ccall(
-        (:mongoc_collection_insert, MONGO_LIB),
+        (:mongoc_collection_insert, libmongoc),
         Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
         collection._wrap_,
         flags,
@@ -61,13 +61,13 @@ export MongoUpdateFlags
 
 update(
     collection::MongoCollection,
-    queryBSON::BSON,
-    updateBSON::BSON,
+    queryBSON::BSONObject,
+    updateBSON::BSONObject,
     flags::Int = MongoUpdateFlags.None
     ) = begin
     bsonError = BSONError()
     ccall(
-        (:mongoc_collection_update, MONGO_LIB),
+        (:mongoc_collection_update, libmongoc),
         Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
         collection._wrap_,
         flags,
@@ -83,7 +83,7 @@ export update
 
 destroy(collection::MongoCollection) =
     ccall(
-        (:mongoc_collection_destroy, MONGO_LIB),
+        (:mongoc_collection_destroy, libmongoc),
         Void, (Ptr{Void},),
         collection._wrap_
         )

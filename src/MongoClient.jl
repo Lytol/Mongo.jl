@@ -8,7 +8,7 @@ type MongoClient
         client = new(
             uri,
             ccall(
-                (:mongoc_client_new, MONGO_LIB),
+                (:mongoc_client_new, libmongoc),
                 Ptr{Void}, (Ptr{Uint8}, ),
                 uriCStr
                 )
@@ -26,7 +26,7 @@ export show
 
 destroy(client::MongoClient) =
     ccall(
-        (:mongoc_client_destroy, MONGO_LIB),
+        (:mongoc_client_destroy, libmongoc),
         Void, (Ptr{Void},),
         client._wrap_
         )

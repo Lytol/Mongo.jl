@@ -1,6 +1,6 @@
 module Mongo
 
-const MONGO_LIB = "libmongoc-1.0"
+include( "../deps/deps.jl")
 
 using LibBSON
 
@@ -9,11 +9,11 @@ import Base.show,
     Base.insert
 
 ccall(
-    (:mongoc_init, MONGO_LIB),
+    (:mongoc_init, libmongoc),
     Void, ()
     )
 atexit() do
-    ccall((:mongoc_cleanup, MONGO_LIB), Void, ())
+    ccall((:mongoc_cleanup, libmongoc), Void, ())
 end
 
 include("MongoClient.jl")
