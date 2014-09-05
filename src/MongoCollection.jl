@@ -107,11 +107,54 @@ baremodule MongoQueryFlags
 end
 export MongoQueryFlags
 
+find(
+    collection::MongoCollection,
+    selector::BSONObject,
+    fields::BSONObject;
+    flags::Int = MongoQueryFlags.None,
+    skip::Int = 0,
+    limit::Int = 0,
+    batch_size::Int = 0
+    ) = begin
+    result = ccall(
+        (:mongoc_collection_find, libmongoc),
+        Ptr{Void}, (Ptr{Void}, Cint, Uint32, Uint32, Uint32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+        collection._wrap_,
+        flags,
+        skip,
+        limit,
+        batch_size,
+        selector._wrap_,
+        fields._wrap_,
+        C_NULL
+        )
+    result == C_NULL && error("mongoc_collection_find: failure")
+    return MongoCursor( result )
+end
+find(
+    collection::MongoCollection,
+    selector::Associative,
+    fields::Associative;
+    skip::Int = 0,
+    limit::Int = 0,
+    batch_size::Int = 0,
+    flags::Int = MongoQueryFlags.None
+    ) = find(
+        collection,
+        BSONObject(selector),
+        BSONObject(fields),
+        skip = skip,
+        limit = limit,
+        batch_size = batch_size,
+        flags = flags
+        )
+export find
+
 count(
     collection::MongoCollection,
     queryBSON::BSONObject;
     skip::Int64 = 0,
-    limit::Int64 = -1,
+    limit::Int64 = 0,
     flags::Int = MongoQueryFlags.None
     ) = begin
     bsonError = BSONError()
@@ -133,7 +176,7 @@ count(
     collection::MongoCollection,
     query::Associative;
     skip::Int64 = 0,
-    limit::Int64 = -1,
+    limit::Int64 = 0,
     flags::Int = MongoQueryFlags.None
     ) = count(
         collection,

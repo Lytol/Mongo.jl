@@ -18,5 +18,6 @@ end
 
 include("MongoClient.jl")
 include("MongoCollection.jl")
+include("MongoCursor.jl")
 
 end
