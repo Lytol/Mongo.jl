@@ -39,6 +39,8 @@ insert(
     document::BSONObject;
     flags::Int = MongoInsertFlags.None
     ) = begin
+    oid = get!(document, "_id", BSONOID())
+
     bsonError = BSONError()
     ccall(
         (:mongoc_collection_insert, libmongoc),
@@ -49,6 +51,8 @@ insert(
         C_NULL,
         bsonError._wrap_
         ) || error("insert: $(string(bsonError))")
+
+    return oid
 end
 insert(
     collection::MongoCollection,
@@ -148,6 +152,44 @@ find(
         batch_size = batch_size,
         flags = flags
         )
+find(
+    collection::MongoCollection,
+    selector::BSONObject;
+    flags::Int = MongoQueryFlags.None,
+    skip::Int = 0,
+    limit::Int = 0,
+    batch_size::Int = 0
+    ) = begin
+    result = ccall(
+        (:mongoc_collection_find, libmongoc),
+        Ptr{Void}, (Ptr{Void}, Cint, Uint32, Uint32, Uint32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+        collection._wrap_,
+        flags,
+        skip,
+        limit,
+        batch_size,
+        selector._wrap_,
+        C_NULL,
+        C_NULL
+        )
+    result == C_NULL && error("mongoc_collection_find: failure")
+    return MongoCursor( result )
+end
+find(
+    collection::MongoCollection,
+    selector::Associative;
+    skip::Int = 0,
+    limit::Int = 0,
+    batch_size::Int = 0,
+    flags::Int = MongoQueryFlags.None
+    ) = find(
+        collection,
+        BSONObject(selector),
+        skip = skip,
+        limit = limit,
+        batch_size = batch_size,
+        flags = flags
+        )
 export find
 
 count(
@@ -160,7 +202,7 @@ count(
     bsonError = BSONError()
     result = ccall(
         (:mongoc_collection_count, libmongoc),
-        Bool, (Ptr{Void}, Cint, Ptr{Void}, Int64, Int64, Ptr{Void}, Ptr{Uint8}),
+        Int64, (Ptr{Void}, Cint, Ptr{Void}, Int64, Int64, Ptr{Void}, Ptr{Uint8}),
         collection._wrap_,
         flags,
         queryBSON._wrap_,
