@@ -6,7 +6,10 @@ using LibBSON
 
 import Base.show,
     Base.convert,
-    Base.insert
+    Base.insert,
+    Base.start,
+    Base.next,
+    Base.done
 
 ccall(
     (:mongoc_init, libmongoc),

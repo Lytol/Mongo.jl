@@ -9,17 +9,28 @@ type MongoCursor
 end
 export MongoCursor
 
-next(cursor::MongoCursor) = begin
-    bsonObjectPtr = Array(Ptr{Void}, 1)
-    ccall(
+# Iterator
+
+start(cursor::MongoCursor) = nothing
+export start
+
+next(cursor::MongoCursor, _::Nothing) = 
+    (BSONObject(ccall(
+        (:mongoc_cursor_current, libmongoc),
+        Ptr{Void}, (Ptr{Void},),
+        cursor._wrap_
+        )), _)
+export next
+
+done(cursor::MongoCursor, _::Nothing) = begin
+    return !ccall(
         (:mongoc_cursor_next, libmongoc),
         Bool, (Ptr{Void}, Ptr{Ptr{Void}}),
         cursor._wrap_,
-        bsonObjectPtr
-        ) || error("mongoc_cursor_next: failure")
-    return BSONObject(bsonObjectPtr[1])
+        Array(Ptr{Void}, 1)
+        )
 end
-export next
+export done
 
 destroy(collection::MongoCursor) =
     ccall(

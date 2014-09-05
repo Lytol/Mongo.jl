@@ -8,9 +8,9 @@ facts("Mongo") do
     context("insert") do
         insert(collection, {"_id"=>oid, "hello"=>"before"})
         @fact count(collection, {"_id"=>oid}) => 1
-        cursor = find(collection, {"_id"=>oid}, {"hello"=>true})
-        println(next(cursor))
-        println(next(cursor))
+        for item in find(collection, {"_id"=>oid}, {"_id"=>false, "hello"=>true})
+            @fact dict(item) => {"hello"=>"before"}
+        end
     end
 
     context("update") do
@@ -20,6 +20,9 @@ facts("Mongo") do
             {"\$set"=>{"hello"=>"after"}}
             )
         @fact count(collection, {"_id"=>oid}) => 1
+        for item in find(collection, {"_id"=>oid}, {"_id"=>false, "hello"=>true})
+            @fact dict(item) => {"hello"=>"after"}
+        end
     end
 
     context("delete") do
