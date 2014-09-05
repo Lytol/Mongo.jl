@@ -9,6 +9,16 @@ type MongoCursor
 end
 export MongoCursor
 
+current(cursor::MongoCursor) = begin
+    return BSONObject(
+        ccall(
+            (:mongoc_cursor_current, libmongoc),
+            Ptr{Void}, (Ptr{Void},),
+            cursor._wrap_
+            )
+        )
+end
+
 destroy(collection::MongoCursor) =
     ccall(
         (:mongoc_cursor_destroy, libmongoc),

@@ -9,6 +9,7 @@ facts("Mongo") do
         insert(collection, {"_id"=>oid, "hello"=>"before"})
         @fact count(collection, {"_id"=>oid}) => 1
         cursor = find(collection, {"_id"=>oid}, {"hello"=>true})
+        println(current(cursor))
     end
 
     context("update") do
