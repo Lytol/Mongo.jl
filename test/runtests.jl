@@ -1,7 +1,5 @@
 using FactCheck, LibBSON, Mongo
 
-include("deps/deps.jl")
-
 facts("Mongo") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
@@ -15,9 +13,18 @@ facts("Mongo") do
     context("update") do
         update(
             collection,
-            BSONObject({"_id"=>oid}),
-            BSONObject({"\$set"=>{"hello"=>"after"}})
+            {"_id"=>oid},
+            {"\$set"=>{"hello"=>"after"}}
             )
+        @fact count(collection, {"_id"=>oid}) => 1
+    end
+
+    context("delete") do
+        delete(
+            collection,
+            {"_id"=>oid}
+            )
+        @fact count(collection, {"_id"=>oid}) => 0
     end
 end
 

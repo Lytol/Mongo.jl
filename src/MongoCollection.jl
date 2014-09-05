@@ -66,8 +66,8 @@ export MongoUpdateFlags
 
 update(
     collection::MongoCollection,
-    queryBSON::BSONObject,
-    updateBSON::BSONObject;
+    selector::BSONObject,
+    change::BSONObject;
     flags::Int = MongoUpdateFlags.None
     ) = begin
     bsonError = BSONError()
@@ -76,12 +76,23 @@ update(
         Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
         collection._wrap_,
         flags,
-        queryBSON._wrap_,
-        updateBSON._wrap_,
+        selector._wrap_,
+        change._wrap_,
         C_NULL,
         bsonError._wrap_
         ) || error("update: $(string(bsonError))")
 end
+update(
+    collection::MongoCollection,
+    selector::Associative,
+    change::Associative;
+    flags::Int = MongoUpdateFlags.None
+    ) = update(
+        collection,
+        BSONObject(selector),
+        BSONObject(change),
+        flags = flags
+        )
 export update
 
 baremodule MongoQueryFlags
@@ -132,6 +143,41 @@ count(
         flags = flags
         )
 export count
+
+baremodule MongoDeleteFlags
+    const None              = 0
+    const SingleRemove      = 1
+end
+export MongoDeleteFlags
+
+delete(
+    collection::MongoCollection,
+    selector::BSONObject;
+    flags::Int = MongoDeleteFlags.None
+    ) = begin
+    bsonError = BSONError()
+    result = ccall(
+        (:mongoc_collection_delete, libmongoc),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+        collection._wrap_,
+        flags,
+        selector._wrap_,
+        C_NULL,
+        bsonError._wrap_
+        )
+    result < 0 && error("delete: $(string(bsonError))")
+    return result
+end
+delete(
+    collection::MongoCollection,
+    selector::Associative;
+    flags::Int = MongoDeleteFlags.None
+    ) = delete(
+        collection,
+        BSONObject(selector),
+        flags = flags
+        )
+export delete
 
 destroy(collection::MongoCollection) =
     ccall(
