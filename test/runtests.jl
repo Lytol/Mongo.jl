@@ -10,6 +10,7 @@ facts("Mongo") do
         @fact count(collection, {"_id"=>oid}) => 1
         cursor = find(collection, {"_id"=>oid}, {"hello"=>true})
         println(next(cursor))
+        println(next(cursor))
     end
 
     context("update") do
