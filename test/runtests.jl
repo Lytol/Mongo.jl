@@ -1,5 +1,9 @@
 using FactCheck, LibBSON, Mongo
 
+mongoDBDir = "/tmp/Mongo.jl-test/$(getpid()).db"
+mkpath(mongoDBDir)
+mongod = spawn(`mongod --dbpath $mongoDBDir`)
+
 facts("Mongo") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
@@ -39,3 +43,6 @@ facts("Mongo: bad host/port") do
     collection = MongoCollection(client, "foo", "bar")
     @fact_throws insert(collection, {"foo"=>"bar"})
 end
+
+kill(mongod)
+rm(mongoDBDir, recursive=true)
