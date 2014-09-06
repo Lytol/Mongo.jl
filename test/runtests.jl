@@ -1,11 +1,16 @@
 using FactCheck, LibBSON, Mongo
 
-mongoDBDir = "/tmp/Mongo.jl-test/$(getpid()).db"
+mongoDBDir = "/tmp/Mongo.jl-test/$(getpid())/db"
 mkpath(mongoDBDir)
-mongod = spawn(`mongod --dbpath $mongoDBDir`)
+if get(ENV, "JULIAVERSION", "") == "julianightlies"
+    port = 27018
+else
+    port = 27017
+end
+mongod = spawn(`mongod --dbpath $mongoDBDir --port $port`)
 
 facts("Mongo") do
-    client = MongoClient()
+    client = MongoClient("localhost", port)
     collection = MongoCollection(client, "foo", "bar")
     oid = BSONOID()
 

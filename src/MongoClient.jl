@@ -2,8 +2,7 @@ type MongoClient
     uri::String
     _wrap_::Ptr{Void}
 
-    MongoClient(host::String = "localhost", port::Int = 27017) = begin
-        uri = "mongodb://$host:$port/"
+    MongoClient(uri::String) = begin
         uriCStr = bytestring(uri)
         client = new(
             uri,
@@ -16,6 +15,9 @@ type MongoClient
         finalizer(client, destroy)
         return client
     end
+
+    MongoClient(host::String, port::Int) = MongoClient("mongodb://$host:$port/")
+    MongoClient() = MongoClient("localhost", 27017)
 end
 export MongoClient
 
