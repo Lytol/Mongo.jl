@@ -14,4 +14,9 @@ before_install:
   - sudo apt-get install libpcre3-dev julia -y
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
 script:
-  - julia -e 'Pkg.init(); Pkg.clone(pwd()); Pkg.test("LibMongo")'
+  - julia -e 'Pkg.init()'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("Mongo")'
+  - julia -e 'Pkg.add("FactCheck"); Pkg.add("BinDeps"); Pkg.add("LibBSON")'
+  - julia -e 'Pkg.test("Mongo", coverage=true)'
+after_success:
+- if [ $JULIAVERSION = "juliareleases" ]; then julia -e 'cd(Pkg.dir("Mongo")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'; fi
