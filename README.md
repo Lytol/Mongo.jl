@@ -17,13 +17,13 @@ This software is licensed under the simplified BSD license; see the file LICENSE
 Installing
 ----------
 
-Building the driver should build and/or install the MongoDB C driver for you.
+Building this package should build and/or install the MongoDB C driver for you.
 
 
 Setup
 -----
 
-You must have a MongoDB server running somewhere.  You can specify the host and port in the MongoClient constructor, otherwise it uses the Mongo defaults.
+You must have a MongoDB server running somewhere.  You can specify the host and port in the MongoClient constructor, otherwise it uses the Mongo default locahost:27017.
 
 
 Getting Started
@@ -34,7 +34,7 @@ Getting Started
     # Create a client connection
     client = MongoClient() # default locahost:27017
 
-    # Get a hangle to collection named "cats" in database "db"
+    # Get a handle to collection named "cats" in database "db"
     collection = MongoCollection(client, "db", "cats")
 
     # Insert a document
@@ -45,7 +45,7 @@ Getting Started
     println(count(collection, {"name"=>"Mokie"}))
     println(count(collection, {"_id"=>oid}))
 
-    # Print all the documents
+    # Print all the documents with a name of Mokie
     for doc in find(collection, {"name"=>"Mokie"})
         println(doc)
     end
