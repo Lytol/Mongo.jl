@@ -19,7 +19,7 @@ next(cursor::MongoCursor, _::Nothing) =
         (:mongoc_cursor_current, libmongoc),
         Ptr{Void}, (Ptr{Void},),
         cursor._wrap_
-        )), _)
+        ), None), _)
 export next
 
 done(cursor::MongoCursor, _::Nothing) = begin
