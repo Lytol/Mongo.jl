@@ -17,6 +17,9 @@ type MongoClient
     end
 
     MongoClient(host::String, port::Int) = MongoClient("mongodb://$host:$port/")
+	MongoClient(host::String, port::Int, user::String, password::String) = MongoClient("mongodb://$user:$password@$host:$port/")
+	MongoClient(host::String, user::String, password::String) = MongoClient("mongodb://$user:$password@$host/")
+	MongoClient(host::String, user::String, password::String, db::String) = MongoClient("mongodb://$user:$password@$host/$db")
     MongoClient() = MongoClient("localhost", 27017)
 end
 export MongoClient
