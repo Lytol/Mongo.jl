@@ -9,6 +9,8 @@ import Base.show,
     Base.insert,
     Base.start,
     Base.next,
+    Base.count,
+    Base.find,
     Base.done
 
 ccall(
