@@ -111,7 +111,7 @@ baremodule MongoQueryFlags
 end
 export MongoQueryFlags
 
-find(
+Base.find(
     collection::MongoCollection,
     selector::BSONObject,
     fields::BSONObject;
@@ -135,7 +135,7 @@ find(
     result == C_NULL && error("mongoc_collection_find: failure")
     return MongoCursor( result )
 end
-find(
+Base.find(
     collection::MongoCollection,
     selector::Associative,
     fields::Associative;
@@ -152,7 +152,7 @@ find(
         batch_size = batch_size,
         flags = flags
         )
-find(
+Base.find(
     collection::MongoCollection,
     selector::BSONObject;
     flags::Int = MongoQueryFlags.None,
@@ -175,7 +175,7 @@ find(
     result == C_NULL && error("mongoc_collection_find: failure")
     return MongoCursor( result )
 end
-find(
+Base.find(
     collection::MongoCollection,
     selector::Associative;
     skip::Int = 0,
@@ -192,7 +192,7 @@ find(
         )
 export find
 
-count(
+Base.count(
     collection::MongoCollection,
     queryBSON::BSONObject;
     skip::Int64 = 0,
@@ -214,7 +214,7 @@ count(
     result < 0 && error("count: $(string(bsonError))")
     return result
 end
-count(
+Base.count(
     collection::MongoCollection,
     query::Associative;
     skip::Int64 = 0,
