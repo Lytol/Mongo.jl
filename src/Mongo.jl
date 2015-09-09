@@ -6,7 +6,6 @@ using LibBSON
 
 import Base.show,
     Base.convert,
-    Base.insert,
     Base.start,
     Base.next,
     Base.count,

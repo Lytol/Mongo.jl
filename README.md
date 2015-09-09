@@ -39,27 +39,27 @@ Getting Started
 
     # Insert a document
     # Mokie is a pretty old cat
-    oid = insert(collection, {"name"=>"Mokie", "age"=>17})
+    oid = insert(collection, Dict("name"=>"Mokie", "age"=>17))
 
     # Ensure it was inserted by counting
-    println(count(collection, {"name"=>"Mokie"}))
-    println(count(collection, {"_id"=>oid}))
+    println(count(collection, Dict("name"=>"Mokie")))
+    println(count(collection, Dict("_id"=>oid)))
 
     # Print all the documents with a name of Mokie
-    for doc in find(collection, {"name"=>"Mokie"})
+    for doc in find(collection, Dict("name"=>"Mokie"))
         println(doc)
     end
 
     # It's Mokie's birthday!
     # Update the document and print the new docs
-    update(collection, {"_id"=>oid}, {"age"=>18})
-    for doc in find(collection, {"name"=>"Mokie"})
+    update(collection, Dict("_id"=>oid), Dict("age"=>18))
+    for doc in find(collection, Dict("name"=>"Mokie"))
         println(doc)
     end
 
     # Delete the document and ensure it is no more by counting
-    delete(collection, {"_id"=>oid})
-    println(count(collection, {"name"=>"Mokie"}))
+    delete(collection, Dict("_id"=>oid))
+    println(count(collection, Dict("name"=>"Mokie")))
 
 Contributing
 ------------
