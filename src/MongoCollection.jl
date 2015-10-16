@@ -1,13 +1,13 @@
 type MongoCollection
     _wrap_::Ptr{Void}
 
-    MongoCollection(client::MongoClient, db::String, name::String) = begin
+    MongoCollection(client::MongoClient, db::AbstractString, name::AbstractString) = begin
         dbCStr = bytestring(db)
         nameCStr = bytestring(name)
         collection = new(
             ccall(
                 (:mongoc_client_get_collection, libmongoc),
-                Ptr{Void}, (Ptr{Void}, Ptr{Uint8}, Ptr{Uint8}),
+                Ptr{Void}, (Ptr{Void}, Ptr{UInt8}, Ptr{UInt8}),
                 client._wrap_, dbCStr, nameCStr
                 )
             )
@@ -20,7 +20,7 @@ export MongoCollection
 show(io::IO, collection::MongoCollection) = begin
     nameCStr = ccall(
         (:mongoc_collection_get_name, libmongoc),
-        Ptr{Uint8}, (Ptr{Void},),
+        Ptr{UInt8}, (Ptr{Void},),
         collection._wrap_
         )
     name = bytestring(nameCStr)
@@ -44,7 +44,7 @@ insert(
     bsonError = BSONError()
     ccall(
         (:mongoc_collection_insert, libmongoc),
-        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{UInt8}),
         collection._wrap_,
         flags,
         document._wrap_,
@@ -77,7 +77,7 @@ update(
     bsonError = BSONError()
     ccall(
         (:mongoc_collection_update, libmongoc),
-        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Void}, Ptr{UInt8}),
         collection._wrap_,
         flags,
         selector._wrap_,
@@ -122,7 +122,7 @@ Base.find(
     ) = begin
     result = ccall(
         (:mongoc_collection_find, libmongoc),
-        Ptr{Void}, (Ptr{Void}, Cint, Uint32, Uint32, Uint32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+        Ptr{Void}, (Ptr{Void}, Cint, UInt32, UInt32, UInt32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
         collection._wrap_,
         flags,
         skip,
@@ -162,7 +162,7 @@ Base.find(
     ) = begin
     result = ccall(
         (:mongoc_collection_find, libmongoc),
-        Ptr{Void}, (Ptr{Void}, Cint, Uint32, Uint32, Uint32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
+        Ptr{Void}, (Ptr{Void}, Cint, UInt32, UInt32, UInt32, Ptr{Void}, Ptr{Void}, Ptr{Void}),
         collection._wrap_,
         flags,
         skip,
@@ -202,7 +202,7 @@ Base.count(
     bsonError = BSONError()
     result = ccall(
         (:mongoc_collection_count, libmongoc),
-        Int64, (Ptr{Void}, Cint, Ptr{Void}, Int64, Int64, Ptr{Void}, Ptr{Uint8}),
+        Int64, (Ptr{Void}, Cint, Ptr{Void}, Int64, Int64, Ptr{Void}, Ptr{UInt8}),
         collection._wrap_,
         flags,
         queryBSON._wrap_,
@@ -243,7 +243,7 @@ delete(
     bsonError = BSONError()
     result = ccall(
         (:mongoc_collection_delete, libmongoc),
-        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{Uint8}),
+        Bool, (Ptr{Void}, Cint, Ptr{Void}, Ptr{Void}, Ptr{UInt8}),
         collection._wrap_,
         flags,
         selector._wrap_,
