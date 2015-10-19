@@ -1,14 +1,14 @@
 type MongoClient
-    uri::String
+    uri::AbstractString
     _wrap_::Ptr{Void}
 
-    MongoClient(uri::String) = begin
+    MongoClient(uri::AbstractString) = begin
         uriCStr = bytestring(uri)
         client = new(
             uri,
             ccall(
                 (:mongoc_client_new, libmongoc),
-                Ptr{Void}, (Ptr{Uint8}, ),
+                Ptr{Void}, (Ptr{UInt8}, ),
                 uriCStr
                 )
             )
@@ -16,10 +16,10 @@ type MongoClient
         return client
     end
 
-    MongoClient(host::String, port::Int) = MongoClient("mongodb://$host:$port/")
-	MongoClient(host::String, port::Int, user::String, password::String) = MongoClient("mongodb://$user:$password@$host:$port/")
-	MongoClient(host::String, user::String, password::String) = MongoClient("mongodb://$user:$password@$host/")
-	MongoClient(host::String, user::String, password::String, db::String) = MongoClient("mongodb://$user:$password@$host/$db")
+MongoClient(host::AbstractString, port::Int) = MongoClient("mongodb://$host:$port/")
+MongoClient(host::AbstractString, port::Int, user::AbstractString, password::AbstractString) = MongoClient("mongodb://$user:$password@$host:$port/")
+MongoClient(host::AbstractString, user::AbstractString, password::AbstractString) = MongoClient("mongodb://$user:$password@$host/")
+MongoClient(host::AbstractString, user::AbstractString, password::AbstractString, db::AbstractString) = MongoClient("mongodb://$user:$password@$host/$db")
     MongoClient() = MongoClient("localhost", 27017)
 end
 export MongoClient
