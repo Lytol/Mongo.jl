@@ -2,7 +2,7 @@ Mongo.jl
 ===========
 
 [![Build Status](https://api.travis-ci.org/pzion/Mongo.jl.svg?branch=master)](https://travis-ci.org/pzion/Mongo.jl)
-[![Pkgs Status](http://pkg.julialang.org/badges/Mongo_release.svg)](http://pkg.julialang.org/?pkg=Mongo&ver=release)
+[![0.4 Status](http://pkg.julialang.org/badges/Mongo_0.4.svg)](http://pkg.julialang.org/?pkg=Mongo)
 [![Coverage Status](https://img.shields.io/coveralls/pzion/Mongo.jl.svg)](https://coveralls.io/r/pzion/Mongo.jl?branch=master)
 
 [MongoDB](http://www.mongodb.org) bindings for [The Julia Language](http://julialang.org/)
