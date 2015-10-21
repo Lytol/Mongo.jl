@@ -59,6 +59,11 @@ insert(
     dict::Associative;
     flags::Int = MongoInsertFlags.None
     ) = insert(collection, BSONObject(dict), flags=flags)
+insert(
+    collection::MongoCollection,
+    dict::NakedDict;
+    flags::Int = MongoInsertFlags.None
+    ) = insert(collection, BSONObject(Dict(dict)), flags=flags)
 export insert
 
 baremodule MongoUpdateFlags
@@ -97,6 +102,8 @@ update(
         BSONObject(change),
         flags = flags
         )
+update(c::MongoCollection, s::NakedDict, chg::NakedDict; kwargs...) =
+    update(c, BSONObject(Dict(s)), BSONObject(Dict(chg)); kwargs...)
 export update
 
 baremodule MongoQueryFlags
@@ -190,6 +197,10 @@ Base.find(
         batch_size = batch_size,
         flags = flags
         )
+Base.find(c::MongoCollection, s::NakedDict; kwargs...) =
+    find(c, BSONObject(Dict(s)); kwargs...)
+Base.find(c::MongoCollection, s::NakedDict, f::NakedDict; kwargs...) =
+    find(c, BSONObject(Dict(s)), BSONObject(Dict(f)); kwargs...)
 export find
 
 Base.count(
@@ -227,6 +238,9 @@ Base.count(
         limit = limit,
         flags = flags
         )
+Base.count(c::MongoCollection, s::NakedDict; kwargs...) =
+    count(c, BSONObject(Dict(s)); kwargs...)
+Base.count(c::MongoCollection) = count(c, BSONObject())
 export count
 
 baremodule MongoDeleteFlags
@@ -262,6 +276,8 @@ delete(
         BSONObject(selector),
         flags = flags
         )
+delete(c::MongoCollection, s::NakedDict; kwargs...) =
+    delete(c, BSONObject(Dict(s)); kwargs...)
 export delete
 
 destroy(collection::MongoCollection) =
