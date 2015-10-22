@@ -1,10 +1,5 @@
 using FactCheck, LibBSON, Mongo
 
-mongoDBDir = "/tmp/Mongo.jl-test.db"
-mkpath(mongoDBDir)
-mongod = spawn(`mongod --dbpath $mongoDBDir`)
-sleep(1) # wait for listen on port
-
 facts("Mongo") do
     client = MongoClient()
     collection = MongoCollection(client, "foo", "bar")
@@ -76,6 +71,3 @@ facts("Query building helpers") do
     end
     delete(ppl, ())
 end
-
-kill(mongod)
-rm(mongoDBDir, recursive=true)
