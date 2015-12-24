@@ -1,6 +1,7 @@
 type MongoClient
     uri::AbstractString
     _wrap_::Ptr{Void}
+    _closed::Bool
 
     MongoClient(uri::AbstractString) = begin
         uriCStr = bytestring(uri)
@@ -10,7 +11,8 @@ type MongoClient
                 (:mongoc_client_new, libmongoc),
                 Ptr{Void}, (Ptr{UInt8}, ),
                 uriCStr
-                )
+                ),
+            false
             )
         finalizer(client, destroy)
         return client
@@ -30,8 +32,11 @@ export show
 # Private
 
 destroy(client::MongoClient) =
-    ccall(
-        (:mongoc_client_destroy, libmongoc),
-        Void, (Ptr{Void},),
-        client._wrap_
-        )
+    if !client._closed
+        ccall(
+            (:mongoc_client_destroy, libmongoc),
+            Void, (Ptr{Void},),
+            client._wrap_
+            )
+        client._closed = true
+    end
