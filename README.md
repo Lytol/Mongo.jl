@@ -1,68 +1,100 @@
 Mongo.jl
-========
+===========
 
-MongoDB bindings for [The Julia Language](http://julialang.org/)
+[![Build Status](https://api.travis-ci.org/pzion/Mongo.jl.svg?branch=master)](https://travis-ci.org/pzion/Mongo.jl)
+[![0.4 Status](http://pkg.julialang.org/badges/Mongo_0.4.svg)](http://pkg.julialang.org/?pkg=Mongo)
+[![Coverage Status](https://img.shields.io/coveralls/pzion/Mongo.jl.svg)](https://coveralls.io/r/pzion/Mongo.jl?branch=master)
+
+[MongoDB](http://www.mongodb.org) bindings for [The Julia Language](http://julialang.org/)
+
+
+License
+-------
+
+This software is licensed under the simplified BSD license; see the file LICENSE for details.
 
 
 Installing
 ----------
 
-You must have the Mongo C drivers installed, see <https://github.com/mongodb/mongo-c-driver>.
+Building this package should build and/or install the MongoDB C driver for you.
 
 
-Getting Started
----------------
+Setup
+-----
 
-    require("Mongo.jl")
+You must have a MongoDB server running somewhere.  You can specify the host and port in the MongoClient constructor, otherwise it uses the Mongo default locahost:27017.
 
-    using Mongo
+````julia
+using Mongo, LibBSON
 
-    client = MongoClient()   # Defaults to MongoClient("localhost", 27017)
+# Create a client connection
+client = MongoClient() # default locahost:27017
 
-    # Insert a few documents
-    insert(client, "test.people", { "name" => "Brian", "age" => 30, "hobbies" => {"surfing", "coding", "video games"}})
-    insert(client, "test.people", { "name" => "Lizzie", "age" => 30, "hobbies" => {"traveling", "crafts", "movies"}})
-    insert(client, "test.people", { "name" => "Adam", "age" => 31, "hobbies" => {"climbing", "cycling"}})
+# Get a handle to collection named "cats" in database "db"
+cats = MongoCollection(client, "db", "cats")
 
-    # Find Brian
-    obj = find_one(client, "test.people", { "name" => "Brian" })
+# Insert a document
+# Mokie is a pretty old cat
+m_oid = insert(cats, Dict("name" => "Mokie", "age" => 17))
+````
 
-    # Change his age to 31
-    update(client, "test.people", { "_id" => obj["_id"] }, { "\$set" => { "age" => 31 }})
+Dictionary Syntax
+-----------------
 
-    # Change everyone's age to 30
-    update(client, "test.people", Dict(), { "\$set" => { "age" => 30 }}, MULTI)
+With MongoDB, documents and queries are represented as `BSONObject` structures.
+In Julia, we can create these from `Associative` data structures like `Dict`.
+However, most functions in this package also accept a `Union{Pair,Tuple}` in
+lieu of that, allowing us to omit the `Dict` constructor:
 
-    # Change Adam back to 31
-    update(client, "test.people", { "name" => "Adam" }, { "\$set" => { "age" => 31 }})
+````julia
+# Pebbles is an even older cat
+p_oid = insert(cats, ("name" => "Pebbles", "age" => 19))
 
-    # Find everyone's name and age and display
-    fields = { "name" => 1, "age" => 1 }
+# Ensure they were inserted by counting
+println(count(cats, ("name" => "Mokie"))) # 1
+println(count(cats)) # 2
+````
 
-    cursor = find(client, "test.people", Dict(), fields)
+Query Syntax
+------------
 
-    for o in cursor
-        println("Name: " * o["name"] * " / Age: " * string(o["age"]))  # Or simply, println(o)
-    end
+MongoDB queries are also BSON documents, and can include certain
+[modifiers](https://docs.mongodb.org/manual/reference/operator/query-modifier/)
+and [operators](https://docs.mongodb.org/manual/reference/operator/query/) which
+allow for the construction of complex queries. This package includes shortcut
+functions for many of them so, for instance instead of typing:
 
-    # Remove Lizze
-    remove(client, "test.people", { "name" => "Lizzie" })
+````julia
+Dict("\$query" => Dict("age" => Dict("\$lt" => 19)))
+````
 
-    # Actually, let's just remove everyone
-    remove(client, "test.people", Dict())
+We can do the following:
 
+````julia
+# Print all cats under age 19
+for doc in find(cats, query("age" => lt(19)))
+    println("$(doc["name"]) is younger than 19")
+end
+````
 
-Development
------------
+Operators and modifiers can be combined by encasing them in parenthesis.
 
-### Running the Test Suite
+````julia
+# It's Mokie's birthday!
+# We can use the shortcut for the "$inc" operator to increase Mokie's age by 1
+update(cats, ("_id" => m_oid), inc("age" => 1))
 
-NOTE: _MongoDB server must be running on localhost_
+for doc in find(cats, (query(), orderby("age" => 1)))
+    println("$(doc["name"]) is $(doc["age"]) years old.")
+end
 
-* `cd` to the project root and run the following: `julia test/run.jl`
-
+# Delete the document and ensure it is no more by counting
+delete(cats, ("_id" => m_oid))
+println(count(cats, ("name" => "Mokie")))
+````
 
 Contributing
 ------------
 
-**Fork and send a pull request or create a [GitHub issue](https://github.com/Lytol/Mongo.jl/issues) and I'll try and respond quickly**
+Contributions are welcome!  Please fork on github.com and submit a pull request if you have a contribution you think is worthwhile!
