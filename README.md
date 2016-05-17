@@ -13,6 +13,7 @@ You must have the Mongo C drivers installed, see <https://github.com/mongodb/mon
 Getting Started
 ---------------
 
+```Julia
     require("Mongo.jl")
 
     using Mongo
@@ -50,7 +51,7 @@ Getting Started
 
     # Actually, let's just remove everyone
     remove(client, "test.people", Dict())
-
+```
 
 Development
 -----------
